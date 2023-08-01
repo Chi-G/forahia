@@ -1,0 +1,227 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use App\Models\ProductCart;
+use App\Models\ProductList;
+use App\Models\CartOrder;
+
+class ProductCartController extends Controller
+{
+    public function addToCart(Request $request)
+    {
+            $email = $request->input('email');
+            $size = $request->input('size');
+            $color = $request->input('color');
+            $quantity = $request->input('quantity');
+            $product_code = $request->input('product_code');
+
+            //where requested product_code matches the product_code in the ProductList table
+            $productDetails = ProductList::where('product_code',$product_code)->get();
+
+            $price = $productDetails[0]['price'];
+            $special_price = $productDetails[0]['special_price'];
+
+            if($special_price=="na"){
+                $total_price = $price*$quantity;
+                $unit_price = $price;
+            }
+            else{
+                $total_price = $special_price*$quantity;
+                $unit_price = $special_price;
+            }
+
+            $result = ProductCart::insert([
+
+                'email' => $email,
+                'image' => $productDetails[0]['image'],
+                'product_name' => $productDetails[0]['title'],
+                'product_code' => $productDetails[0]['product_code'],
+                'size' => "Size: ".$size,
+                'color' => "Color: ".$color,
+                'quantity' => $quantity,
+                'unit_price' => $unit_price,
+                'total_price' => $total_price,
+            ]);
+            return $result;
+    } // End Method
+
+   public function CartCount(Request $request)
+   {
+          $product_code = $request->product_code;
+          $result = ProductCart::count();
+          return $result;
+   } // End Method
+
+   public function CartList(Request $request){
+
+           $email = $request->email;
+
+            //where requested email matches the email in the ProductCart table
+           $result = ProductCart::where('email',$email)->get();
+           return $result;
+
+   } // End Method
+
+    public function RemoveCartList(Request $request){
+        $id = $request->id;
+
+        //where requested email matches the email in the ProductCart table delete
+        $result = ProductCart::where('id', $id)->delete();
+        return $result;
+    }
+
+    public function CartItemPlus(Request $request) {
+        $id = $request->id;
+        $quantity = $request->quantity;
+        $price = $request->price;
+
+        $newQuentity = $quantity+1;
+        $total_price = $newQuentity * $price;
+
+        //where requested id matches the id in the ProductCart table update
+        $result = ProductCart::where('id', $id)
+            ->update(['quantity' => $newQuentity, 'total_price' => $total_price]);
+
+        return $result;
+    }
+
+    public function CartItemMinus(Request $request) {
+        $id = $request->id;
+        $quantity = $request->quantity;
+        $price = $request->price;
+
+        $newQuentity = $quantity-1;
+        $total_price = $newQuentity * $price;
+
+        //where requested id matches the id in the ProductCart table update
+        $result = ProductCart::where('id', $id)
+            ->update(['quantity' => $newQuentity, 'total_price' => $total_price]);
+
+        return $result;
+    }
+
+    public function CartOrder(Request $request){
+        $city = $request->input('city');
+        $paymentMethod = $request->input('payment_method');
+        $yourName = $request->input('name');
+        $email = $request->input('email');
+        $DeliveryAddress = $request->input('delivery_address');
+        $invoice_no = $request->input('invoice_no');
+        $DeliveryCharge = $request->input('delivery_charge');
+
+        date_default_timezone_set("Africa/Lagos");
+        $request_time = date("h:i:sa");
+        $request_date = date("d-m-Y");
+
+        //where requested email matches the email in the ProductCart table update
+        $CartList = ProductCart::where('email', $email)->get();
+
+        //loop through and  insert below fields to CartOrder table
+        foreach($CartList as $CartListItem){
+            $cartInsertDeleteResult = "";
+
+                $resultInsert = CartOrder::insert([
+                  'invoice_no' => "Ceejay".$invoice_no,
+                  'product_name' => $CartListItem['product_name'],
+                  'product_code' => $CartListItem['product_code'],
+                  'size' => $CartListItem['size'],
+                  'color' => $CartListItem['color'],
+                  'quantity' => $CartListItem['quantity'],
+                  'unit_price' => $CartListItem['unit_price'],
+                  'total_price' => $CartListItem['total_price'],
+                  'email' => $CartListItem['email'],
+                  'name' => $yourName,
+                  'payment_method' => $paymentMethod,
+                  'delivery_address' => $DeliveryAddress,
+                  'city' => $city,
+                  'delivery_charge' => $DeliveryCharge,
+                  'order_date' => $request_date,
+                  'order_time' => $request_time,
+                  'order_status' => "Pending",
+                ]);
+
+                //delete item from ProductCart table after a successful order confirmation
+                if($resultInsert === 1){
+                    $resultDelete = ProductCart::where('id', $CartListItem['id'])->delete();
+                    if($resultDelete === 1) {
+                        $cartInsertDeleteResult = 1;
+                        }else{
+                           $cartInsertDeleteResult = 0;
+                        }
+                    }
+                }
+            return $cartInsertDeleteResult;
+    }
+
+        public function OrderListByUser(Request $request){
+            $email = $request->email;
+            $result = CartOrder::where('email', $email)->orderBy('id', 'DESC')->get();
+
+            return $result;
+        }
+
+    ///////////////// Product Order Processing From Backend Admin Panel////////////////
+    public function PendingOrder(){
+        //when order_status column will be 'pending', get the details
+        $orders = CartOrder::where('order_status','Pending')->orderBy('id','DESC')->paginate(10);
+        return view('backend.orders.pending_orders',compact('orders'));
+
+    }
+
+        public function ProcessingOrder(){
+        //when order_status column will be 'processing', get the details
+        $orders = CartOrder::where('order_status','Processing')->orderBy('id','DESC')->paginate(10);
+        return view('backend.orders.processing_orders',compact('orders'));
+
+    }
+
+        public function CompleteOrder(){
+        //when order_status column will be 'complete', get the details
+        $orders = CartOrder::where('order_status','Complete')->orderBy('id','DESC')->paginate(10);
+        return view('backend.orders.complete_orders',compact('orders'));
+
+    }
+
+    public function OrderDetails($id){
+        $order = CartOrder::findOrFail($id);
+        return view('backend.orders.order_details',compact('order'));
+
+    }
+ 
+    public function PendingToProcessing($id){
+        CartOrder::findOrFail($id)->update(['order_status' => 'Processing']);
+
+        $notification = array(
+                'message' => 'Order Processing Successfully',
+                'alert-type' => 'success'
+            );
+
+            return redirect()->route('pending-order')->with($notification);
+
+    }
+
+    public function ProcessingToComplete($id){
+        CartOrder::findOrFail($id)->update(['order_status' => 'Complete']);
+
+        $notification = array(
+                'message' => 'Order Complete Successfully',
+                'alert-type' => 'success'
+            );
+
+            return redirect()->route('processing-order')->with($notification);
+    } 
+
+    public function DeleteCompleteOrder($id) {
+        CartOrder::findOrFail($id)->delete();
+
+        $notification = array(
+           'message' => 'Product order Deleted Successfully',
+           'alert-type' => 'success'
+       );
+
+       return redirect()->back()->with($notification);
+    }
+}
