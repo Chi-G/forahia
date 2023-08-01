@@ -3,14 +3,13 @@ import NavMenuDesktop from '../components/common/NavMenuDesktop';
 import NavMenuMobile from '../components/common/NavMenuMobile';
 import FooterDesktop from '../components/common/FooterDesktop';
 import FooterMobile from '../components/common/FooterMobile';
-import About from '../components/others/About';
+import ForgetPassword from '../components/common/ForgetPassword';
 
-class AboutPage extends Component {
+class ForgetPasswordPage extends Component {
 
   componentDidMount(){
     window.scroll(0,0)
   }
-
 
   render() {
     return (
@@ -23,7 +22,7 @@ class AboutPage extends Component {
           <NavMenuMobile />
         </div>
 
-        <About />
+        <ForgetPassword />
 
         <div className='Desktop'> <FooterDesktop /> </div>
         <div className='Mobile'> <FooterMobile /> </div>
@@ -32,5 +31,4 @@ class AboutPage extends Component {
   }
 }
 
-export default AboutPage
-
+export default ForgetPasswordPage

@@ -3,18 +3,20 @@ import NavMenuDesktop from '../components/common/NavMenuDesktop';
 import NavMenuMobile from '../components/common/NavMenuMobile';
 import FooterDesktop from '../components/common/FooterDesktop';
 import FooterMobile from '../components/common/FooterMobile';
-import About from '../components/others/About';
+import OrderList from '../components/Cart/OrderList';
 
-class AboutPage extends Component {
+class OrderListPage extends Component {
 
   componentDidMount(){
     window.scroll(0,0)
   }
 
-
   render() {
+
+    const User = this.props.user;
     return (
-      <Fragment>
+      <div>
+        <Fragment>
         <div className='Desktop'>
           <NavMenuDesktop />          
         </div>
@@ -23,14 +25,14 @@ class AboutPage extends Component {
           <NavMenuMobile />
         </div>
 
-        <About />
+        <OrderList user={User} />
 
         <div className='Desktop'> <FooterDesktop /> </div>
         <div className='Mobile'> <FooterMobile /> </div>
-      </Fragment>
+      </Fragment>  
+      </div>
     )
   }
 }
 
-export default AboutPage
-
+export default OrderListPage
