@@ -1,6 +1,6 @@
-import axios from 'axios';
 import React, { Component, Fragment } from 'react'
 import { Col, Container, Row } from 'react-bootstrap'
+import axios from 'axios';
 import AppURL from '../../api/AppURL';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -8,12 +8,13 @@ import ReactHtmlParser from 'react-html-parser';
 import Breadcrumb from 'react-bootstrap/Breadcrumb';
 import { Link } from 'react-router-dom';
 
-class About extends Component {
+
+class Privacy extends Component {
 
   constructor(){
     super();
     this.state = {
-      about: "",
+      privacy: "",
       loaderDiv: "",
       mainDiv: "d-none"
     }
@@ -28,8 +29,8 @@ class About extends Component {
         let StatusCode = response.status;
 
         if(StatusCode === 200){
-          let JsonData = (response.data)[0]['about'];
-          this.setState({about:JsonData, loaderDiv:"d-none", mainDiv:""});
+          let JsonData = (response.data)[0]['privacy'];
+          this.setState({privacy:JsonData, loaderDiv:"d-none", mainDiv:""});
 
           sessionStorage.setItem("SiteInfoPurchase", JsonData)
         }
@@ -48,7 +49,7 @@ class About extends Component {
     }
 
     else{
-      this.setState({about:SiteInfoPurchase});
+      this.setState({privacy:SiteInfoPurchase});
     }
   }
 
@@ -56,19 +57,20 @@ class About extends Component {
   render() {
     return (
       <Fragment>
-      <Container>
+        <Container>
 
-      <div className='breadbody'>
-        <Breadcrumb>
-          <Breadcrumb.Item> <Link to='/'> Home </Link> </Breadcrumb.Item>
-          <Breadcrumb.Item> <Link to='/about'> About </Link> </Breadcrumb.Item>
-        </Breadcrumb>
-      </div>
+        <div className='breadbody'>
+          <Breadcrumb>
+            <Breadcrumb.Item> <Link to='/'> Home </Link> </Breadcrumb.Item>
+            <Breadcrumb.Item> <Link to='/privacy'> Privacy </Link> </Breadcrumb.Item>
+          </Breadcrumb>
+        </div>
 
-        <Row className='p-2'>
-          <Col className='shadow-sm bg-white mt-2' md={12} lg={12} sm={12} xs={12}>
 
-          <div className={this.state.loaderDiv} >
+          <Row className='p-2'>
+            <Col className='shadow-sm bg-white mt-2' md={12} lg={12} sm={12} xs={12}>
+
+            <div className={this.state.loaderDiv} >
             <div class="ph-item">
               <div class="ph-col-12">
                 <div class="ph-row">
@@ -117,23 +119,23 @@ class About extends Component {
                 </div>
               </div>
             </div>
-          </div>
-
-          <div className={this.state.mainDiv}>
-            <h4 className='section-title-login'> About Us Page </h4>           
-            <p className='section-title-contact'>
-            { ReactHtmlParser(this.state.about) }
-               {/* {this.state.about} */}
-            </p>
           </div>
           
-          </Col>
-        </Row>
-      </Container>
+
+          <div className={this.state.mainDiv}>
+              <h4 className='section-title-login'> Privacy Page </h4>           
+              <p className='section-title-contact'>
+              { ReactHtmlParser(this.state.privacy) }
+              </p>
+          </div>
+            
+            </Col>
+          </Row>
+        </Container>
       <ToastContainer />
-    </Fragment>
+      </Fragment>
     )
   }
 }
 
-export default About
+export default Privacy
